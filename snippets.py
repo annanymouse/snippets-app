@@ -1,9 +1,3 @@
-# # Store an item using fully qualified names
-# python snippets.py --type "put" --name "list" --snippet "A sequence of things - created using []"
-
-# # Store an item using abbreviations
-# python snippets.py -t "put" -n "list" -s "A sequence of things - created using []"
-
 # # Use positional rather than optional arguments
 # python snippets.py put list "A sequence of things - created using []"
 
@@ -22,28 +16,22 @@ logging.debug("Database connection established.")
 def put(name, snippet):
     """Store a snippet with an associated name."""
     logging.info("Storing snippet {!r}: {!r}".format(name, snippet))
-    cursor = connection.cursor()
-    command = "insert into snippets values (%s, %s)"
     try:
-        command = "insert into snippets values (%s, %s)"
-        cursor.execute(command, (name, snippet))
+        with connection, connection.cursor() as cursor:
+            cursor.execute("insert into snippets values (%s, %s)", ((name, snippet)))
     except psycopg2.IntegrityError as e:
-        connection.rollback()
-        command = "update snippets set message=%s where keyword=%s"
-        cursor.execute(command, (snippet, name))
-    connection.commit()
+        with connection, connection.cursor() as cursor:
+            connection.rollback()
+            cursor.execute("update snippets set message=%s where keyword=%s", (snippet, name))   
     logging.debug("Snippet stored successfully.")
     return name, snippet
 
 def get(name):
     """Retrieve the snippet with a given name."""
     logging.info("Getting a snippet with name: {!r}".format(name))
-    cursor = connection.cursor()
-    #command = "select message from snippets where keyword = %s"
-    #cur.execute("SELECT * FROM test WHERE id = %s", (3,))
-    cursor.execute("select message from snippets where keyword = %s", (name,))
-    row = cursor.fetchone()
-    connection.commit()
+    with connection, connection.cursor() as cursor:
+        cursor.execute("select message from snippets where keyword=%s", (name,))
+        row = cursor.fetchone()
     logging.debug("Snippet retrieved successfully.")
     try:
         return row[0]
