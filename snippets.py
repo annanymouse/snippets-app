@@ -31,26 +31,26 @@ def get(name):
     logging.error("FIXME: Unimplemented - get({!r})".format(name))
     return ""
 
-def trash(name, snippet):
-    """
-    Trash a snippet with an associated name.
-    """
-    logging.error("FIXME: Unimplemented - get({!r})".format(name))
-    return "The message has been removed."
+# def trash(name, snippet):
+#     """
+#     Trash a snippet with an associated name.
+#     """
+#     logging.error("FIXME: Unimplemented - get({!r})".format(name))
+#     return "The message has been removed."
 
-def seek(name, snippet):
-    """
-    Returns all messages containing certain words.
-    """
-    logging.error("FIXME: Unimplemented - get({!r})".format(name))
-    return ""
+# def seek(name, snippet):
+#     """
+#     Returns all messages containing certain words.
+#     """
+#     logging.error("FIXME: Unimplemented - get({!r})".format(name))
+#     return ""
 
-def update(name, snippet):
-    """
-    Updates the information in a snippet.
-    """
-    logging.error("FIXME: Unimplemented - get({!r})".format(name))
-    return ""
+# def update(name, snippet):
+#     """
+#     Updates the information in a snippet.
+#     """
+#     logging.error("FIXME: Unimplemented - get({!r})".format(name))
+#     return ""
 
 def main():
     """Main function"""
@@ -64,6 +64,11 @@ def main():
     put_parser = subparsers.add_parser("put", help="Store a snippet")
     put_parser.add_argument("name", help="The name of the snippet")
     put_parser.add_argument("snippet", help="The snippet text")
+    
+    #Subparser for the get command
+    logging.debug("Construcing get subparser")
+    put_parser = subparsers.add_parser("get", help="Get a snippet")
+    put_parser.add_argument("name", help="The name of the snippet to get")
 
     
     arguments = parser.parse_args(sys.argv[1:])
