@@ -41,14 +41,14 @@ def get(name):
     cursor = connection.cursor()
     #command = "select message from snippets where keyword = %s"
     #cur.execute("SELECT * FROM test WHERE id = %s", (3,))
-    try:
-        cursor.execute("select message from snippets where keyword = %s", (name,))
-    except TypeError:
-        print("There is no snippet with that name.")
+    cursor.execute("select message from snippets where keyword = %s", (name,))
     row = cursor.fetchone()
     connection.commit()
     logging.debug("Snippet retrieved successfully.")
-    
+    try:
+        return row[0]
+    except TypeError:
+        print("There is no snippet with that name.")
 
 # def trash(name, snippet):
 #     """
