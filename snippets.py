@@ -37,6 +37,21 @@ def get(name):
         return row[0]
     except TypeError:
         print("There is no snippet with that name.")
+        
+def catalog():
+    """Retrieve all the names(keywords) in the database."""
+    logging.info("Getting all snippet names in the database...")
+    with connection, connection.cursor() as cursor:
+        cursor.execute("select keyword from snippets")
+        rows = cursor.fetchall()
+    logging.debug("Snippet names retrieved successfully.")
+    #return "{}".format("\n".join([row for row in rows]))
+    return rows
+#     try:
+#         return "\n".join(["{}".format([row for row in rows])
+#     except TypeError:
+#         print("What's going on? There are no snippet names.")
+
 
 # def trash(name, snippet):
 #     """
@@ -74,9 +89,13 @@ def main():
     
     #Subparser for the get command
     logging.debug("Construcing get subparser")
-    put_parser = subparsers.add_parser("get", help="Get a snippet")
-    put_parser.add_argument("name", help="The name of the snippet to get")
-
+    get_parser = subparsers.add_parser("get", help="Get a snippet")
+    get_parser.add_argument("name", help="The name of the snippet to get")
+    
+    #Subparser for the catalog command
+    logging.debug("Construcing catalog subparser")
+    catalog_parser = subparsers.add_parser("catalog", help="Catalog of all snippet names")
+    
     arguments = parser.parse_args(sys.argv[1:])
     # Convert parsed arguments from Namespace to dictionary
     arguments = vars(arguments)
@@ -87,7 +106,12 @@ def main():
         print("Stored {!r} as {!r}".format(snippet, name))
     elif command == "get":
         snippet = get(**arguments)
-        print("Retrieved snippet: {!r}".format(snippet))
+        print("Retrieved snippet: {!r}".format(snippet)) # {!r} gives us the __repr__
+    elif command == "catalog":
+        names = catalog()
+        print("Here are all the snippet names:")
+        # generator expression used inside join to print the results of the rows from cursor.fetchall() nicely
+        print("{}".format('\n'.join(name[0] for name in names)))
 
 if __name__=="__main__":
     main()
