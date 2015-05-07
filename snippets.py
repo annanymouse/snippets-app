@@ -16,9 +16,9 @@ connection = psycopg2.connect("dbname='snippets' user='action' host='localhost'"
 logging.debug("Database connection established.")
 
 def put(name, snippet, hide):
-    print("{}: {}, {}".format(name, snippet, hide))
+#     print("{}: {}, {}".format(name, snippet, hide))
     """Store a snippet with an associated name."""
-    print(arguments)
+#     print(arguments)
     logging.info("Storing snippet {!r}: {!r}.".format(name, snippet))
     try:
         with connection, connection.cursor() as cursor:
@@ -105,8 +105,8 @@ def main():
     command = arguments.pop("command")
     
     if command == "put":
-        print("Arguments passed into put:")
-        print(arguments)
+#         print("Arguments passed into put:")
+#         print(arguments)
         name, snippet, hide = put(**arguments)
         print("Stored {!r} as {!r} with a hidden flag of {!r}.".format(snippet, name, hide))
     elif command == "get":
