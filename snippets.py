@@ -6,6 +6,8 @@ import logging
 import sys
 import psycopg2
 
+arguments = {}
+
 #set the log output file, and the log level (this is the initialization)
 logging.basicConfig(filename="snippets.log", level=logging.DEBUG)
 
@@ -16,12 +18,12 @@ logging.debug("Database connection established.")
 def put(name, snippet, hide):
     print("{}: {}, {}".format(name, snippet, hide))
     """Store a snippet with an associated name."""
-#     print(arguments)
+    print(arguments)
     logging.info("Storing snippet {!r}: {!r}.".format(name, snippet))
     try:
         with connection, connection.cursor() as cursor:
 #             if hide:
-            cursor.execute("insert into snippets values (%s, %s)", name, snippet)
+            cursor.execute("insert into snippets values (%s, %s, %s)", (name, snippet, hide,))
 #             elif False:
 #                 cursor.execute("insert into snippets values (%s, %s)", (name, snippet,))
 #             else:
@@ -31,7 +33,7 @@ def put(name, snippet, hide):
             connection.rollback()
             cursor.execute("update snippets set message=%s where keyword=%s", (snippet, name,))
     logging.debug("Snippet stored successfully.")
-    return name, snippet
+    return name, snippet, hide
 
 def get(name):
     """Retrieve the snippet with a given name."""
@@ -74,7 +76,7 @@ def main():
     """Main function"""
     logging.info("Constructing parser")
     parser = argparse.ArgumentParser(description="Store and retrieve snippets of text")
-#     parser.add_argument("--hide", help="sets snippet to hide", action="store_true")
+    parser.add_argument("--hide", help="sets snippet to hide", action="store_true")
 #     parser.add_argument("--show", help="sets snippet to show", action="store_false")
     
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
@@ -84,7 +86,7 @@ def main():
     put_parser = subparsers.add_parser("put", help="Store a snippet")
     put_parser.add_argument("name", help="The name of the snippet")
     put_parser.add_argument("snippet", help="The snippet text")
-    put_parser.add_argument("--hide", help="sets snippet to hide", action="store_true")
+#     put_parser.add_argument("--hide", help="sets snippet to hide", action="store_true")
 #     put_parser.add_argument("--show", help="sets snippet to show", action="store_false")
 #     put_parser.set_defaults(func=put)
     
