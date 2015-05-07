@@ -13,17 +13,19 @@ logging.debug("Connecting to PostgreSQL")
 connection = psycopg2.connect("dbname='snippets' user='action' host='localhost'")
 logging.debug("Database connection established.")
 
-def put(name, snippet, flag=False):
+def put(name, snippet, hide):
+    print("{}: {}, {}".format(name, snippet, hide))
     """Store a snippet with an associated name."""
+#     print(arguments)
     logging.info("Storing snippet {!r}: {!r}.".format(name, snippet))
     try:
         with connection, connection.cursor() as cursor:
-            if arguments.hide:
-                cursor.execute("insert into snippets values (%s, %s, %s)", (name, snippet, arguments.hide,))
-            elif arguments.show:
-                cursor.execute("insert into snippets values (%s, %s)", (name, snippet,))
-            else:
-                cursor.execute("insert into snippets values (%s, %s)", (name, snippet,))
+#             if hide:
+            cursor.execute("insert into snippets values (%s, %s)", name, snippet)
+#             elif False:
+#                 cursor.execute("insert into snippets values (%s, %s)", (name, snippet,))
+#             else:
+#                 cursor.execute("insert into snippets values (%s, %s)", (name, snippet,))
     except psycopg2.IntegrityError as e:
         with connection, connection.cursor() as cursor:
             connection.rollback()
@@ -72,8 +74,8 @@ def main():
     """Main function"""
     logging.info("Constructing parser")
     parser = argparse.ArgumentParser(description="Store and retrieve snippets of text")
-    parser.add_argument("--hide", help="sets snippet to hide", action="store_true")
-    parser.add_argument("--show", help="sets snippet to show", action="store_false")
+#     parser.add_argument("--hide", help="sets snippet to hide", action="store_true")
+#     parser.add_argument("--show", help="sets snippet to show", action="store_false")
     
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
     
@@ -82,7 +84,7 @@ def main():
     put_parser = subparsers.add_parser("put", help="Store a snippet")
     put_parser.add_argument("name", help="The name of the snippet")
     put_parser.add_argument("snippet", help="The snippet text")
-#     put_parser.add_argument("--hide", help="sets snippet to hide", action="store_true")
+    put_parser.add_argument("--hide", help="sets snippet to hide", action="store_true")
 #     put_parser.add_argument("--show", help="sets snippet to show", action="store_false")
 #     put_parser.set_defaults(func=put)
     
@@ -106,7 +108,9 @@ def main():
     command = arguments.pop("command")
     
     if command == "put":
-        name, snippet = put(**arguments)
+        print(arguments)
+#         put('x', 'y')
+        name, snippet, hide = put(**arguments)
         print("Stored {!r} as {!r}.".format(snippet, name))
     elif command == "get":
         snippet = get(**arguments)
