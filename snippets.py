@@ -13,16 +13,21 @@ logging.debug("Connecting to PostgreSQL")
 connection = psycopg2.connect("dbname='snippets' user='action' host='localhost'")
 logging.debug("Database connection established.")
 
-def put(name, snippet):
+def put(name, snippet, flag=False):
     """Store a snippet with an associated name."""
-    logging.info("Storing snippet {!r}: {!r}".format(name, snippet))
+    logging.info("Storing snippet {!r}: {!r}.".format(name, snippet))
     try:
         with connection, connection.cursor() as cursor:
-            cursor.execute("insert into snippets values (%s, %s)", ((name, snippet)))
+            if arguments.hide:
+                cursor.execute("insert into snippets values (%s, %s, %s)", (name, snippet, arguments.hide,))
+            elif arguments.show:
+                cursor.execute("insert into snippets values (%s, %s)", (name, snippet,))
+            else:
+                cursor.execute("insert into snippets values (%s, %s)", (name, snippet,))
     except psycopg2.IntegrityError as e:
         with connection, connection.cursor() as cursor:
             connection.rollback()
-            cursor.execute("update snippets set message=%s where keyword=%s", (snippet, name))   
+            cursor.execute("update snippets set message=%s where keyword=%s", (snippet, name,))
     logging.debug("Snippet stored successfully.")
     return name, snippet
 
@@ -42,7 +47,7 @@ def catalog():
     """Retrieve all the names(keywords) in the database."""
     logging.info("Getting all snippet names in the database...")
     with connection, connection.cursor() as cursor:
-        cursor.execute("select keyword from snippets order by age")
+        cursor.execute("select keyword from snippets where not hidden order by keyword")
         rows = cursor.fetchall()
     logging.debug("Snippet names retrieved successfully.")
     try:
@@ -54,8 +59,7 @@ def search(name):
     """Retrieve the snippet with a given name."""
     logging.info("Getting all snippets with a keyword: {!r}".format(name))
     with connection, connection.cursor() as cursor:
-        #key="%"+name+"%"
-        stmt = "select * from snippets where message like '%%%s%%'" % (name)
+        stmt = "select * from snippets where message like '%%%s%%' and not hidden" % (name)
         cursor.execute(stmt)
         rows = cursor.fetchall()
     logging.debug("Snippets retrieved successfully.")
@@ -68,26 +72,31 @@ def main():
     """Main function"""
     logging.info("Constructing parser")
     parser = argparse.ArgumentParser(description="Store and retrieve snippets of text")
+    parser.add_argument("--hide", help="sets snippet to hide", action="store_true")
+    parser.add_argument("--show", help="sets snippet to show", action="store_false")
     
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
     
     #Subparser for the put command
-    logging.debug("Construcing put subparser")
+    logging.debug("Constructing put subparser")
     put_parser = subparsers.add_parser("put", help="Store a snippet")
     put_parser.add_argument("name", help="The name of the snippet")
     put_parser.add_argument("snippet", help="The snippet text")
+#     put_parser.add_argument("--hide", help="sets snippet to hide", action="store_true")
+#     put_parser.add_argument("--show", help="sets snippet to show", action="store_false")
+#     put_parser.set_defaults(func=put)
     
     #Subparser for the get command
-    logging.debug("Construcing get subparser")
+    logging.debug("Constructing get subparser")
     get_parser = subparsers.add_parser("get", help="Get a snippet")
     get_parser.add_argument("name", help="The name of the snippet to get")
     
     #Subparser for the catalog command
-    logging.debug("Construcing catalog subparser")
+    logging.debug("Constructing catalog subparser")
     catalog_parser = subparsers.add_parser("catalog", help="Catalog of all snippet names")
     
     #Subparser for the search command
-    logging.debug("Construcing search subparser")
+    logging.debug("Constructing search subparser")
     search_parser = subparsers.add_parser("search", help="Search for a snippets containing a string.")
     search_parser.add_argument("name", help="Name to search for in all the snippet messages.")
     
@@ -98,7 +107,7 @@ def main():
     
     if command == "put":
         name, snippet = put(**arguments)
-        print("Stored {!r} as {!r}".format(snippet, name))
+        print("Stored {!r} as {!r}.".format(snippet, name))
     elif command == "get":
         snippet = get(**arguments)
         print("Retrieved snippet: {!r}".format(snippet)) # {!r} gives us the __repr__
