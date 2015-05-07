@@ -23,12 +23,6 @@ def put(name, snippet, hide):
     try:
         with connection, connection.cursor() as cursor:
             cursor.execute("insert into snippets values (%s, %s, %s)", (name, snippet, hide,))
-#             if hide:
-#                 cursor.execute("insert into snippets values (%s, %s, %s)", (name, snippet, hide,))
-#             elif show:
-#                 cursor.execute("insert into snippets values (%s, %s, %s)", (name, snippet, show,))
-#             else:
-#                 cursor.execute("insert into snippets values (%s, %s)", (name, snippet,))
     except psycopg2.IntegrityError as e:
         with connection, connection.cursor() as cursor:
             connection.rollback()
@@ -64,6 +58,7 @@ def search(name):
     """Retrieve the snippet with a given name."""
     logging.info("Getting all snippets with a keyword: {!r}".format(name))
     with connection, connection.cursor() as cursor:
+#         cursor.execute("select * from snippets where message like '%%%s%%' and not hidden", (name,))
         stmt = "select * from snippets where message like '%%%s%%' and not hidden" % (name)
         cursor.execute(stmt)
         rows = cursor.fetchall()
@@ -77,11 +72,6 @@ def main():
     """Main function"""
     logging.info("Constructing parser")
     parser = argparse.ArgumentParser(conflict_handler='resolve')
-#     group = parser.add_mutually_exclusive_group()
-#     parser.add_argument("--hide", help="sets snippet to hide", action="store_true")
-#     parser.add_argument("--show", help="sets snippet to hide", action="store_false")    
-#     group.add_argument("--show", help="sets snippet to show", action="store_false")
-#     group.add_argument("--show", help="sets snippet to show", action="store_false")
     
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
     
@@ -93,7 +83,6 @@ def main():
     group = put_parser.add_mutually_exclusive_group() 
     group.add_argument("--hide", help="sets snippet to hide", action="store_true", dest='hide')
     group.add_argument("--show", help="sets snippet to show", action="store_false", dest='hide')
-
 #     put_parser.set_defaults(func=put)
     
     #Subparser for the get command
