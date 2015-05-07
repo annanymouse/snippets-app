@@ -22,10 +22,11 @@ def put(name, snippet, hide):
     logging.info("Storing snippet {!r}: {!r}.".format(name, snippet))
     try:
         with connection, connection.cursor() as cursor:
-#             if hide:
             cursor.execute("insert into snippets values (%s, %s, %s)", (name, snippet, hide,))
-#             elif False:
-#                 cursor.execute("insert into snippets values (%s, %s)", (name, snippet,))
+#             if hide:
+#                 cursor.execute("insert into snippets values (%s, %s, %s)", (name, snippet, hide,))
+#             elif show:
+#                 cursor.execute("insert into snippets values (%s, %s, %s)", (name, snippet, show,))
 #             else:
 #                 cursor.execute("insert into snippets values (%s, %s)", (name, snippet,))
     except psycopg2.IntegrityError as e:
@@ -75,19 +76,24 @@ def search(name):
 def main():
     """Main function"""
     logging.info("Constructing parser")
-    parser = argparse.ArgumentParser(description="Store and retrieve snippets of text")
-    parser.add_argument("--hide", help="sets snippet to hide", action="store_true")
-#     parser.add_argument("--show", help="sets snippet to show", action="store_false")
+    parser = argparse.ArgumentParser(conflict_handler='resolve')
+#     group = parser.add_mutually_exclusive_group()
+#     parser.add_argument("--hide", help="sets snippet to hide", action="store_true")
+#     parser.add_argument("--show", help="sets snippet to hide", action="store_false")    
+#     group.add_argument("--show", help="sets snippet to show", action="store_false")
+#     group.add_argument("--show", help="sets snippet to show", action="store_false")
     
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
     
     #Subparser for the put command
     logging.debug("Constructing put subparser")
-    put_parser = subparsers.add_parser("put", help="Store a snippet")
+    put_parser = subparsers.add_parser("put", help="Store a snippet", description='Store and retrieve snippets of text')
     put_parser.add_argument("name", help="The name of the snippet")
     put_parser.add_argument("snippet", help="The snippet text")
-#     put_parser.add_argument("--hide", help="sets snippet to hide", action="store_true")
-#     put_parser.add_argument("--show", help="sets snippet to show", action="store_false")
+    group = put_parser.add_mutually_exclusive_group() 
+    group.add_argument("--hide", help="sets snippet to hide", action="store_true", dest='hide')
+    group.add_argument("--show", help="sets snippet to show", action="store_false", dest='hide')
+
 #     put_parser.set_defaults(func=put)
     
     #Subparser for the get command
@@ -110,10 +116,10 @@ def main():
     command = arguments.pop("command")
     
     if command == "put":
+        print("Arguments passed into put:")
         print(arguments)
-#         put('x', 'y')
         name, snippet, hide = put(**arguments)
-        print("Stored {!r} as {!r}.".format(snippet, name))
+        print("Stored {!r} as {!r} with a hidden flag of {!r}.".format(snippet, name, hide))
     elif command == "get":
         snippet = get(**arguments)
         print("Retrieved snippet: {!r}".format(snippet)) # {!r} gives us the __repr__
